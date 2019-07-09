@@ -1,0 +1,15 @@
+{
+  "author": "Sean McQuay",
+  "bugs": {
+    "url": "https://github.com/srm985/git-extensions/issues"
+  },
+  "description": "Bash scripts to extend Git functionality.",
+  "homepage": "https://github.com/srm985/git-extensions#readme",
+  "license": "MIT",
+  "name": "git-extensions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srm985/git-extensions.git"
+  },
+  "version": "1.0.0"
+}

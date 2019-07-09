@@ -1,0 +1,26 @@
+#!/bin/sh
+
+FORCE_LEVEL=$1
+
+if [ "$FORCE_LEVEL" != "-D" ]; then
+  FORCE_LEVEL="-d"
+fi
+
+COLOR_GREEN='\33[0;32m'
+COLOR_NONE='\33[0m'
+COLOR_RED='\33[0;31m'
+
+BRANCH_LIST=$(git for-each-ref --shell --format='%(refname)' refs/heads/)
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+
+BRANCH_LIST=${BRANCH_LIST//\'//""}
+BRANCH_LIST=${BRANCH_LIST//\/refs\/heads\//""}
+BRANCH_LIST=( $BRANCH_LIST )
+
+for BRANCH in "${BRANCH_LIST[@]}"; do
+  BRANCH=${BRANCH::-1}
+
+  if [ "$BRANCH" != "development" ] && [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
+    git branch $FORCE_LEVEL $BRANCH
+  fi
+done

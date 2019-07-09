@@ -1,0 +1,98 @@
+Message: #!/bin/sh
+
+COLOR_GREEN='\33[0;32m'
+COLOR_NONE='\33[0m'
+COLOR_RED='\33[0;31m'
+
+PASSED_BRANCH=$1
+BRANCH=$PASSED_BRANCH
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+
+WAS_STASHED=false
+
+RESTORE_CURRENT_BRANCH () {
+  # If we're updating a branch which isn't checked out.
+  if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
+    git checkout $CURRENT_BRANCH
+  fi
+
+  # Restoring any stashed changes.
+  if [ $WAS_STASHED = true ]; then
+    printf "${COLOR_GREEN}Restoring stashed changes...${COLOR_NONE}\n"
+
+    git stash pop
+  fi
+}
+
+# If no user input supplied, use the current branch.
+if [ -z $BRANCH ]; then
+  BRANCH=$CURRENT_BRANCH
+fi
+
+# Make sure we're not updating protected branches.
+if [ "$BRANCH" == "development" ] || [ "$BRANCH" == "master" ]; then
+  printf "${COLOR_RED}The branch ${BRANCH} should not be directly updated.${COLOR_NONE}\n"
+
+  exit 1
+fi
+
+REMOTE='remotes/origin/'$BRANCH'$'
+
+REMOTE_BRANCH=$(git branch -a | egrep -e $REMOTE)
+
+printf "${COLOR_GREEN}Fetching latest updates from remote development...${COLOR_NONE}\n"
+
+git fetch
+
+# If we're updating a branch which isn't checked out.
+if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
+  printf "${COLOR_GREEN}Stashing any changes...${COLOR_NONE}\n"
+
+  STASHED_MESSAGE=$(git stash)
+
+  if [ "$STASHED_MESSAGE" != "No local changes to save" ]; then
+    WAS_STASHED=true
+  fi
+
+  git checkout $BRANCH
+fi
+
+printf "${COLOR_GREEN}Merging remote development into branch...${COLOR_NONE}\n"
+
+git merge origin/development -m "Merge development into branch."
+
+CONFLICTS=$(git ls-files -u | wc -l)
+
+if [ $CONFLICTS -gt 0 ]; then
+  printf "${COLOR_RED}Merge conflict detected - aborting. Please merge manually.${COLOR_NONE}\n"
+
+  git merge --abort
+
+  RESTORE_CURRENT_BRANCH
+
+  exit 1
+fi
+
+# If we have a remote branch to push to, we'll try to push.
+if [ ! -z $REMOTE_BRANCH ]; then
+  # We'll grab the latest changes from remote, just in case something has changed.
+  git pull
+
+  REMOTE_CONFLICTS=$(git ls-files -u | wc -l)
+
+  if [ $REMOTE_CONFLICTS -gt 0 ]; then
+    printf "${COLOR_RED}Merge conflict detected when pulling from remote branch - aborting. Please merge manually.${COLOR_NONE}\n"
+
+    git merge --abort
+
+    RESTORE_CURRENT_BRANCH
+
+    exit 1
+  fi
+
+  printf "${COLOR_GREEN}Pushing to remote...${COLOR_NONE}\n"
+
+  git push
+fi
+
+RESTORE_CURRENT_BRANCH
