@@ -20,7 +20,7 @@ BRANCH_LIST=( $BRANCH_LIST )
 for BRANCH in "${BRANCH_LIST[@]}"; do
   BRANCH=${BRANCH::-1}
 
-  if [ "$BRANCH" != "development" ] && [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
+  if [ "$BRANCH" != "develop" ] && [ "$BRANCH" != "master" ] && [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
     git branch $FORCE_LEVEL $BRANCH
   fi
 done

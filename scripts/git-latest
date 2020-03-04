@@ -30,7 +30,7 @@ if [ -z $BRANCH ]; then
 fi
 
 # Make sure we're not updating protected branches.
-if [ "$BRANCH" == "development" ] || [ "$BRANCH" == "master" ]; then
+if [ "$BRANCH" == "develop" ] || [ "$BRANCH" == "master" ]; then
   printf "${COLOR_RED}The branch ${BRANCH} should not be directly updated.${COLOR_NONE}\n"
 
   exit 1
@@ -40,7 +40,7 @@ REMOTE='remotes/origin/'$BRANCH'$'
 
 REMOTE_BRANCH=$(git branch -a | egrep -e $REMOTE)
 
-printf "${COLOR_GREEN}Fetching latest updates from remote development...${COLOR_NONE}\n"
+printf "${COLOR_GREEN}Fetching latest updates from remote develop...${COLOR_NONE}\n"
 
 git fetch
 
@@ -57,9 +57,9 @@ if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
   git checkout $BRANCH
 fi
 
-printf "${COLOR_GREEN}Merging remote development into branch...${COLOR_NONE}\n"
+printf "${COLOR_GREEN}Merging remote develop into branch...${COLOR_NONE}\n"
 
-git merge origin/development -m "Merge development into branch."
+git merge origin/develop -m "Merge develop into branch."
 
 CONFLICTS=$(git ls-files -u | wc -l)
 
